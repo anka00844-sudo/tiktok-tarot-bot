@@ -1,7 +1,7 @@
 import asyncio
 import os
 from TikTokLive import TikTokLiveClient
-from TikTokLive.types.events import GiftEvent, ConnectEvent
+from TikTokLive.events import GiftEvent, ConnectEvent
 from openai import OpenAI
 from gtts import gTTS
 
@@ -52,10 +52,7 @@ async def on_gift(event: GiftEvent):
         tts = gTTS(text=f"{user_name}, {gift_name} attığın için teşekkürler. İşte tarot falın: {tarot_yorumu}", lang='tr', slow=False)
         ses_dosyasi = "fal.mp3"
         tts.save(ses_dosyasi)
-
-        # 3. Windows'un kendi medya oynatıcısı ile sesi çal
-        print("[SES] Tarot yorumu seslendiriliyor...")
-        os.system(f"start {ses_dosyasi}")
+        print(f"[SES] Ses dosyası oluşturuldu: {ses_dosyasi}")
         
     except Exception as e:
         print(f"[HATA] Bir sorun oluştu: {e}")
