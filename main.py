@@ -4,7 +4,6 @@ from TikTokLive import TikTokLiveClient
 from TikTokLive.types.events import GiftEvent, ConnectEvent
 from openai import OpenAI
 from gtts import gTTS
-from playsound import playsound
 
 # OpenAI API anahtarın
 client_openai = OpenAI(api_key="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")
@@ -54,13 +53,9 @@ async def on_gift(event: GiftEvent):
         ses_dosyasi = "fal.mp3"
         tts.save(ses_dosyasi)
 
-        # 3. Sesi Çal
+        # 3. Windows'un kendi medya oynatıcısı ile sesi çal
         print("[SES] Tarot yorumu seslendiriliyor...")
-        playsound(ses_dosyasi)
-        
-        # Dosyayı temizle
-        if os.path.exists(ses_dosyasi):
-            os.remove(ses_dosyasi)
+        os.system(f"start {ses_dosyasi}")
         
     except Exception as e:
         print(f"[HATA] Bir sorun oluştu: {e}")
