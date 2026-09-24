@@ -1,31 +1,56 @@
 import asyncio
 from TikTokLive import TikTokLiveClient
 from TikTokLive.types.events import GiftEvent, ConnectEvent
+from openai import OpenAI
 
-# Buraya TikTok kullanıcı adını yaz (başında @ işareti olmadan)
+# OpenAI API anahtarını buraya yapıştıracaksın (OpenAI hesabından alınıyor)
+client_openai = OpenAI(api_key="BURAYA_OPENAI_API_KEY_YAZ")
+
+# TikTok kullanıcı adın (başında @ olmadan)
 TIKTOK_HANDLE = "kullanici_adin_buraya"
 
-# İstemciyi (client) başlatıyoruz
-client: TikTokLiveClient = TikTokLiveClient(unique_id=TIKTOK_HANDLE)
+client_tiktok: TikTokLiveClient = TikTokLiveClient(unique_id=TIKTOK_HANDLE)
 
-# Yayına bağlandığında çalışacak kısım
-@client.on("connect")
+@client_tiktok.on("connect")
 async def on_connect(event: ConnectEvent):
-    print(f"[*] Başarıyla canlı yayına bağlanıldı: @{client.unique_id}")
+    print(f"[*] Başarıyla canlı yayına bağlanıldı: @{client_tiktok.unique_id}")
 
-# Biri hediye (jeton) attığında çalışacak kısım
-@client.on("gift")
+@client_tiktok.on("gift")
 async def on_gift(event: GiftEvent):
-    # Sadece arka arkaya gelen hediyelerin ilkini veya tamamını yakalayabiliriz
-    if event.gift.streakable and event.gift.repeat_count > 1:
-        if event.gift.repeat_end:
-            print(f"[HEDIYE] {event.user.nickname} ({event.user.unique_id}), {event.gift.repeat_count} adet {event.gift.name} attı!")
-    else:
-        print(f"[HEDIYE] {event.user.nickname} ({event.user.unique_id}), {event.gift.name} attı!")
+    # Sadece tekli hediyeleri veya tekrar edenlerin bitişini yakalayalım ki üst üste tetiklenmesin
+    if event.gift.streakable and event.gift.repeat_count > 1 and not event.gift.repeat_end:
+        return
+
+    user_name = event.user.nickname
+    gift_name = event.gift.name
+    print(f"[HEDIYE] {user_name}, {gift_name} attı! Tarot yorumu hazırlanıyor...")
+
+    # Yapay zekaya tarot yorumu yaptırıyoruz
+    try:
+        response = client_openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Sen TikTok canlı yayınındaki mistik, gizemli ve eğlenceli bir tarot falcısısın. Sana ismi ve attığı jeton söylenen kişiye rastgele bir tarot kartı çekerek 2-3 cümlelik çok kısa, heyecan verici ve mistik bir gelecek yorumu yap."
+                },
+                {
+                    "role": "user",
+                    "content": f"Kullanıcı adı: {user_name}, Attığı hediye: {gift_name}"
+                }
+            ],
+            max_tokens=150
+        )
         
-        # BURAYA JETON ATILDIĞINDA YAPilACAKLAR GELECEK (Tarot yapay zekası vb.)
-        # Örn: kullanıcının adını ve hediye bilgisini alıp tarot yorumlatacağız.
+        tarot_yorumu = response.choices[0].message.content
+        print(f"\n--- TAROT YORUMU ({user_name}) ---")
+        print(tarot_yorumu)
+        print("----------------------------------\n")
+
+        # BURAYA SESLENDİRME (TTS) KODLARI GELECEK
+        
+    except Exception as e:
+        print(f"[HATA] Yapay zekâ yorum yaparken hata oluştu: {e}")
 
 if __name__ == '__main__':
-    # Botu çalıştır
-    client.run()
+    client_tiktok.run()
