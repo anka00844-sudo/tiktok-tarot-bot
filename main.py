@@ -36,7 +36,7 @@ async def on_gift(event: GiftEvent):
                     "content": "Sen TikTok canlı yayınındaki mistik, gizemli ve eğlenceli bir tarot falcısısın. Sana ismi ve attığı jeton söylenen kişiye rastgele bir tarot kartı çekerek 2-3 cümlelik çok kısa, heyecan verici ve mistik bir gelecek yorumu yap."
                 },
                 {
-                    "user": "user",
+                    "role": "user",
                     "content": f"Kullanıcı adı: {user_name}, Attığı hediye: {gift_name}"
                 }
             ],
