@@ -1,5 +1,4 @@
 import asyncio
-import os
 from TikTokLive import TikTokLiveClient
 from TikTokLive.events import GiftEvent, ConnectEvent
 from openai import OpenAI
@@ -58,4 +57,7 @@ async def on_gift(event: GiftEvent):
         print(f"[HATA] Bir sorun oluştu: {e}")
 
 if __name__ == '__main__':
-    client_tiktok.run()
+    try:
+        client_tiktok.run()
+    except Exception as e:
+        print(f"[KRITIK HATA]: {e}")
