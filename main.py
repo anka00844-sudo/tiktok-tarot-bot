@@ -1,13 +1,16 @@
 import asyncio
+import os
 from TikTokLive import TikTokLiveClient
 from TikTokLive.types.events import GiftEvent, ConnectEvent
 from openai import OpenAI
+from gtts import gTTS
+from playsound import playsound
 
-# OpenAI API anahtarını buraya yapıştıracaksın (OpenAI hesabından alınıyor)
-client_openai = OpenAI(api_key="BURAYA_OPENAI_API_KEY_YAZ")
+# OpenAI API anahtarın
+client_openai = OpenAI(api_key="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")
 
-# TikTok kullanıcı adın (başında @ olmadan)
-TIKTOK_HANDLE = "kullanici_adin_buraya"
+# TikTok kullanıcı adın
+TIKTOK_HANDLE = "bilgiyapayy"
 
 client_tiktok: TikTokLiveClient = TikTokLiveClient(unique_id=TIKTOK_HANDLE)
 
@@ -17,16 +20,15 @@ async def on_connect(event: ConnectEvent):
 
 @client_tiktok.on("gift")
 async def on_gift(event: GiftEvent):
-    # Sadece tekli hediyeleri veya tekrar edenlerin bitişini yakalayalım ki üst üste tetiklenmesin
     if event.gift.streakable and event.gift.repeat_count > 1 and not event.gift.repeat_end:
         return
 
     user_name = event.user.nickname
     gift_name = event.gift.name
-    print(f"[HEDIYE] {user_name}, {gift_name} attı! Tarot yorumu hazırlanıyor...")
+    print(f"\n[HEDIYE] {user_name}, {gift_name} attı! Tarot yorumu hazırlanıyor...")
 
-    # Yapay zekaya tarot yorumu yaptırıyoruz
     try:
+        # 1. OpenAI'den Tarot Yorumu Al
         response = client_openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -43,14 +45,25 @@ async def on_gift(event: GiftEvent):
         )
         
         tarot_yorumu = response.choices[0].message.content
-        print(f"\n--- TAROT YORUMU ({user_name}) ---")
+        print(f"--- TAROT YORUMU ({user_name}) ---")
         print(tarot_yorumu)
-        print("----------------------------------\n")
+        print("----------------------------------")
 
-        # BURAYA SESLENDİRME (TTS) KODLARI GELECEK
+        # 2. Metni Sese Dönüştür (TTS)
+        tts = gTTS(text=f"{user_name}, {gift_name} attığın için teşekkürler. İşte tarot falın: {tarot_yorumu}", lang='tr', slow=False)
+        ses_dosyasi = "fal.mp3"
+        tts.save(ses_dosyasi)
+
+        # 3. Sesi Çal
+        print("[SES] Tarot yorumu seslendiriliyor...")
+        playsound(ses_dosyasi)
+        
+        # Dosyayı temizle
+        if os.path.exists(ses_dosyasi):
+            os.remove(ses_dosyasi)
         
     except Exception as e:
-        print(f"[HATA] Yapay zekâ yorum yaparken hata oluştu: {e}")
+        print(f"[HATA] Bir sorun oluştu: {e}")
 
 if __name__ == '__main__':
     client_tiktok.run()
