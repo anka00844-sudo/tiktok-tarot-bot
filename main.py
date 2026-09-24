@@ -13,11 +13,11 @@ TIKTOK_HANDLE = "bilgiyapayy"
 
 client_tiktok: TikTokLiveClient = TikTokLiveClient(unique_id=TIKTOK_HANDLE)
 
-@client_tiktok.on("connect")
+@client_tiktok.on(ConnectEvent)
 async def on_connect(event: ConnectEvent):
     print(f"[*] Başarıyla canlı yayına bağlanıldı: @{client_tiktok.unique_id}")
 
-@client_tiktok.on("gift")
+@client_tiktok.on(GiftEvent)
 async def on_gift(event: GiftEvent):
     if event.gift.streakable and event.gift.repeat_count > 1 and not event.gift.repeat_end:
         return
@@ -36,7 +36,7 @@ async def on_gift(event: GiftEvent):
                     "content": "Sen TikTok canlı yayınındaki mistik, gizemli ve eğlenceli bir tarot falcısısın. Sana ismi ve attığı jeton söylenen kişiye rastgele bir tarot kartı çekerek 2-3 cümlelik çok kısa, heyecan verici ve mistik bir gelecek yorumu yap."
                 },
                 {
-                    "role": "user",
+                    "user": "user",
                     "content": f"Kullanıcı adı: {user_name}, Attığı hediye: {gift_name}"
                 }
             ],
